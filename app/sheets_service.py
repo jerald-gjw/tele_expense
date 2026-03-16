@@ -293,7 +293,7 @@ class SheetsService:
         analysis.update(
             "A18:B18",
             [[
-                "=IFERROR(QUERY({Expenses!C2:C,Expenses!E2:E,LEFT(Expenses!A2:A,7)},\"select Col1,sum(Col2) where Col3 = '"&TEXT(DATE(B6,B5,1),\"yyyy-mm\")&"' group by Col1 label sum(Col2) ''\",0),\"\")",
+                "=IFERROR(QUERY({Expenses!C2:C,Expenses!E2:E,LEFT(Expenses!A2:A,7)},\"select Col1,sum(Col2) where Col3 = '\"&TEXT(DATE(B6,B5,1),\"yyyy-mm\")&\"' group by Col1 label sum(Col2) ''\",0),\"\")",
                 "",
             ]],
             value_input_option="USER_ENTERED",
@@ -434,7 +434,7 @@ class SheetsService:
             ["Monthly Breakdown by Type", ""],
             ["Type", "Total"],
             [
-                "=IFERROR(QUERY({Expenses!C2:C,Expenses!E2:E,LEFT(Expenses!A2:A,7)},\"select Col1,sum(Col2) where Col3 = '"&TEXT(DATE(B6,B5,1),\"yyyy-mm\")&"' group by Col1 label sum(Col2) ''\",0),\"\")",
+                "=IFERROR(QUERY({Expenses!C2:C,Expenses!E2:E,LEFT(Expenses!A2:A,7)},\"select Col1,sum(Col2) where Col3 = '\"&TEXT(DATE(B6,B5,1),\"yyyy-mm\")&\"' group by Col1 label sum(Col2) ''\",0),\"\")",
                 "",
             ],
             ["", ""],
