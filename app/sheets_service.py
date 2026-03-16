@@ -807,6 +807,27 @@ class SheetsService:
         breakdown = sorted(totals_by_type.items(), key=lambda item: item[1], reverse=True)
         return round(total, 2), [(label, round(amount, 2)) for label, amount in breakdown]
 
+    def get_daily_details(self, for_day: date) -> tuple[float, list[tuple[str, str, str, str, float]]]:
+        target = for_day.strftime("%Y-%m-%d")
+        records = self.worksheet.get_all_records(expected_headers=SHEET_HEADERS)
+        details: list[tuple[str, str, str, str, float]] = []
+        total = 0.0
+
+        for record in records:
+            record_date = str(record.get("Date", "")).strip()
+            if record_date != target:
+                continue
+
+            record_time = str(record.get("Time", "")).strip()
+            expense_type = str(record.get("Type", "")).strip().lower() or "other"
+            name = str(record.get("Name", "")).strip()
+            price = self._safe_float(record.get("Price"))
+            details.append((record_date, record_time, expense_type, name, round(price, 2)))
+            total += price
+
+        details.sort(key=lambda row: row[1])
+        return round(total, 2), details
+
     @staticmethod
     def _safe_float(value: object) -> float:
         try:

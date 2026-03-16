@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import logging
-from datetime import datetime, time
+from datetime import datetime, date, time
 
 from telegram import BotCommand, ReplyKeyboardMarkup, ReplyKeyboardRemove, Update
 from telegram.ext import (
@@ -33,6 +33,7 @@ def register_handlers(application: Application, settings: Settings, sheets_servi
     application.add_handler(CommandHandler("help", help_command))
     application.add_handler(CommandHandler("today", today_command))
     application.add_handler(CommandHandler("month", month_command))
+    application.add_handler(CommandHandler("details", details_command))
     application.add_handler(CommandHandler("breakdown", breakdown_command))
     application.add_handler(CommandHandler("daily_on", daily_on_command))
     application.add_handler(CommandHandler("daily_off", daily_off_command))
@@ -71,6 +72,8 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         "/add - guided expense entry\n"
         "/cancel - cancel interactive entry\n\n"
         "Daily summary:\n"
+        "/details - detailed entries for today\n"
+        "/details YYYY-MM-DD - detailed entries for a date\n"
         "/breakdown daily - daily spending breakdown\n"
         "/breakdown weekly - weekly spending breakdown\n"
         "/breakdown monthly - monthly spending breakdown\n"
@@ -78,6 +81,46 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         "/daily_off - stop daily summary\n"
         "/daily_now - send summary now"
     )
+
+
+async def details_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    sheets_service: SheetsService = context.application.bot_data["sheets_service"]
+    settings: Settings = context.application.bot_data["settings"]
+
+    target_date = datetime.now(settings.tzinfo).date()
+    if context.args:
+        try:
+            target_date = date.fromisoformat(context.args[0].strip())
+        except ValueError:
+            await update.effective_message.reply_text("Usage: /details or /details YYYY-MM-DD")
+            return
+
+    try:
+        total, details = sheets_service.get_daily_details(target_date)
+    except Exception:
+        LOGGER.exception("Failed to fetch daily details")
+        await update.effective_message.reply_text("Could not fetch detailed spending right now. Please try again.")
+        return
+
+    if not details:
+        await update.effective_message.reply_text(f"No spending records for {target_date.strftime('%Y-%m-%d')}.")
+        return
+
+    lines = [
+        f"Detailed spending for {target_date.strftime('%Y-%m-%d')}",
+        "Date\tTime\tType\tName\tPrice",
+    ]
+
+    max_rows = 25
+    for row in details[:max_rows]:
+        row_date, row_time, row_type, row_name, row_price = row
+        lines.append(f"{row_date}\t{row_time}\t{row_type}\t{row_name}\t{row_price:.2f}")
+
+    if len(details) > max_rows:
+        lines.append(f"... ({len(details) - max_rows} more rows)")
+
+    lines.append(f"Total: ${total:.2f}")
+    await update.effective_message.reply_text("\n".join(lines))
 
 
 async def breakdown_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -289,6 +332,7 @@ async def set_bot_commands(application: Application) -> None:
         BotCommand("help", "Show usage help"),
         BotCommand("today", "Show today's total"),
         BotCommand("month", "Show this month's total"),
+        BotCommand("details", "Show detailed spending rows"),
         BotCommand("breakdown", "Show daily/weekly/monthly breakdown"),
         BotCommand("add", "Guided expense entry"),
         BotCommand("cancel", "Cancel guided entry"),

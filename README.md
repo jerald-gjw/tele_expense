@@ -6,7 +6,7 @@ Production-ready Telegram bot that records spending into Google Sheets.
 
 - Input format: `<type> <name> <price>`
 - Records: `Date | Time | Type | Name | Price`
-- Commands: `/start`, `/help`, `/today`, `/month`, `/breakdown`, `/add`, `/cancel`, `/daily_on`, `/daily_off`, `/daily_now`
+- Commands: `/start`, `/help`, `/today`, `/month`, `/details`, `/breakdown`, `/add`, `/cancel`, `/daily_on`, `/daily_off`, `/daily_now`
 - Price validation (`price > 0`)
 - Error handling + logging
 - Environment-based configuration
@@ -35,6 +35,7 @@ Optional:
   - `help - Show usage examples`
   - `today - Show today's total spending`
   - `month - Show this month's total spending`
+   - `details - Show detailed rows for today or a date`
    - `breakdown - Show daily/weekly/monthly breakdown`
    - `add - Guided expense entry`
    - `cancel - Cancel guided entry`
@@ -101,6 +102,7 @@ The bot will auto-write this header if missing.
 9. In Telegram test commands:
    - `/start`
    - `/add`
+   - `/details`
    - `/breakdown weekly`
    - `/daily_on`
 
