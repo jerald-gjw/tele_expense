@@ -285,7 +285,107 @@ class SheetsService:
         if title != "Expense Analysis Dashboard":
             self._initialize_analysis_sheet(analysis)
 
+        self._repair_analysis_formulas(analysis)
+        self._apply_analysis_dropdowns(analysis)
         self._apply_analysis_formatting(analysis)
+
+    def _repair_analysis_formulas(self, analysis: gspread.Worksheet) -> None:
+        analysis.update(
+            "A18:B18",
+            [[
+                "=IFERROR(QUERY({Expenses!C2:C,Expenses!E2:E,LEFT(Expenses!A2:A,7)},\"select Col1,sum(Col2) where Col3 = '"&TEXT(DATE(B6,B5,1),\"yyyy-mm\")&"' group by Col1 label sum(Col2) ''\",0),\"\")",
+                "",
+            ]],
+            value_input_option="USER_ENTERED",
+        )
+
+    def _apply_analysis_dropdowns(self, analysis: gspread.Worksheet) -> None:
+        analysis.update(
+            "G1:H2",
+            [
+                ["Helper_Date_List", "Helper_Year_List"],
+                [
+                    "=SORT(UNIQUE(FILTER(Expenses!A2:A,Expenses!A2:A<>\"\")),1,FALSE)",
+                    "=SORT(UNIQUE(ARRAYFORMULA(YEAR(FILTER(Expenses!A2:A,Expenses!A2:A<>\"\")))),1,FALSE)",
+                ],
+            ],
+            value_input_option="USER_ENTERED",
+        )
+
+        requests = [
+            {
+                "setDataValidation": {
+                    "range": {
+                        "sheetId": analysis.id,
+                        "startRowIndex": 3,
+                        "endRowIndex": 4,
+                        "startColumnIndex": 1,
+                        "endColumnIndex": 2,
+                    },
+                    "rule": {
+                        "condition": {
+                            "type": "ONE_OF_RANGE",
+                            "values": [{"userEnteredValue": "=Analysis!G2:G"}],
+                        },
+                        "strict": False,
+                        "showCustomUi": True,
+                    },
+                }
+            },
+            {
+                "setDataValidation": {
+                    "range": {
+                        "sheetId": analysis.id,
+                        "startRowIndex": 4,
+                        "endRowIndex": 5,
+                        "startColumnIndex": 1,
+                        "endColumnIndex": 2,
+                    },
+                    "rule": {
+                        "condition": {
+                            "type": "ONE_OF_LIST",
+                            "values": [
+                                {"userEnteredValue": "1"},
+                                {"userEnteredValue": "2"},
+                                {"userEnteredValue": "3"},
+                                {"userEnteredValue": "4"},
+                                {"userEnteredValue": "5"},
+                                {"userEnteredValue": "6"},
+                                {"userEnteredValue": "7"},
+                                {"userEnteredValue": "8"},
+                                {"userEnteredValue": "9"},
+                                {"userEnteredValue": "10"},
+                                {"userEnteredValue": "11"},
+                                {"userEnteredValue": "12"},
+                            ],
+                        },
+                        "strict": False,
+                        "showCustomUi": True,
+                    },
+                }
+            },
+            {
+                "setDataValidation": {
+                    "range": {
+                        "sheetId": analysis.id,
+                        "startRowIndex": 5,
+                        "endRowIndex": 6,
+                        "startColumnIndex": 1,
+                        "endColumnIndex": 2,
+                    },
+                    "rule": {
+                        "condition": {
+                            "type": "ONE_OF_RANGE",
+                            "values": [{"userEnteredValue": "=Analysis!H2:H"}],
+                        },
+                        "strict": False,
+                        "showCustomUi": True,
+                    },
+                }
+            },
+        ]
+
+        analysis.spreadsheet.batch_update({"requests": requests})
 
     def _ensure_subscriptions_sheet(self) -> None:
         try:
@@ -334,8 +434,8 @@ class SheetsService:
             ["Monthly Breakdown by Type", ""],
             ["Type", "Total"],
             [
-                "=IFERROR(UNIQUE(FILTER(Expenses!C2:C, LEFT(Expenses!A2:A,7)=TEXT(DATE(B6,B5,1),\"yyyy-mm\"))),\"\")",
-                "=IF(A18=\"\",\"\",SUMIFS(Expenses!E2:E,Expenses!C2:C,A18,LEFT(Expenses!A2:A,7),TEXT(DATE(B6,B5,1),\"yyyy-mm\")))",
+                "=IFERROR(QUERY({Expenses!C2:C,Expenses!E2:E,LEFT(Expenses!A2:A,7)},\"select Col1,sum(Col2) where Col3 = '"&TEXT(DATE(B6,B5,1),\"yyyy-mm\")&"' group by Col1 label sum(Col2) ''\",0),\"\")",
+                "",
             ],
             ["", ""],
             ["Monthly Totals in Selected Year", ""],
@@ -382,6 +482,20 @@ class SheetsService:
                         "pixelSize": 310,
                     },
                     "fields": "pixelSize",
+                }
+            },
+            {
+                "updateDimensionProperties": {
+                    "range": {
+                        "sheetId": sheet_id,
+                        "dimension": "COLUMNS",
+                        "startIndex": 6,
+                        "endIndex": 8,
+                    },
+                    "properties": {
+                        "hiddenByUser": True,
+                    },
+                    "fields": "hiddenByUser",
                 }
             },
             {

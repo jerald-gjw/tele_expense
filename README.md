@@ -86,6 +86,7 @@ The bot will auto-write this header if missing.
 4. Build command: `pip install -r requirements.txt`
 5. Start command: `python run.py`
 6. Add environment variables in Render:
+   - `BOT_MODE=webhook`
    - `TELEGRAM_BOT_TOKEN`
    - `GOOGLE_SHEET_ID`
    - `GOOGLE_SERVICE_ACCOUNT_JSON`
@@ -96,6 +97,17 @@ The bot will auto-write this header if missing.
    - `WEBHOOK_SECRET_TOKEN=<long-random-string>` (recommended)
    - `LOG_LEVEL=INFO`
 7. Deploy. The bot starts webhook server and automatically registers webhook URL.
+8. Open Render logs and confirm startup includes webhook mode.
+9. In Telegram test commands:
+   - `/start`
+   - `/add`
+   - `/breakdown weekly`
+   - `/daily_on`
+
+### Local vs cloud mode
+
+- Local machine: `BOT_MODE=polling` in `.env`
+- Render cloud: `BOT_MODE=webhook`
 
 ## 5) Bot behavior
 
@@ -158,9 +170,9 @@ Subscription data is saved in `Subscriptions` worksheet so it survives restarts.
 The bot auto-creates a second worksheet named `Analysis` with configurable tracking metrics.
 
 Configuration cells:
-- `B4`: Selected date (for exact daily total, e.g. 16/03/2025)
-- `B5`: Selected month (1-12)
-- `B6`: Selected year (e.g. 2026)
+- `B4`: Selected date (dropdown from existing expense dates)
+- `B5`: Selected month (dropdown 1-12)
+- `B6`: Selected year (dropdown from existing expense years)
 - `B7`: Optional type filter (e.g. `food`)
 
 Included analytics:
