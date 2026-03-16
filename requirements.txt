@@ -1,0 +1,5 @@
+python-telegram-bot[job-queue,webhooks]==21.11.1
+gspread==6.2.0
+google-auth==2.40.1
+python-dotenv==1.0.1
+tzdata==2025.2
