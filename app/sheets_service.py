@@ -291,11 +291,47 @@ class SheetsService:
 
     def _repair_analysis_formulas(self, analysis: gspread.Worksheet) -> None:
         analysis.update(
-            "A18:B18",
+            "A16:B17",
+            [
+                ["Monthly Breakdown by Type", ""],
+                ["Type", "Total"],
+            ],
+            value_input_option="USER_ENTERED",
+        )
+        analysis.update(
+            "A18",
             [[
-                "=IFERROR(QUERY(FILTER({Expenses!C2:C,Expenses!E2:E},LEFT(Expenses!A2:A,7)=TEXT(DATE(B6,B5,1),\"yyyy-mm\")),\"select Col1,sum(Col2) group by Col1 label sum(Col2) ''\",0),\"\")",
-                "",
+                "=IFERROR(QUERY(FILTER({Expenses!C2:C,Expenses!E2:E},LEFT(Expenses!A2:A,7)=TEXT(DATE(B6,B5,1),\"yyyy-mm\")),\"select Col1,sum(Col2) group by Col1 order by sum(Col2) desc limit 10 label sum(Col2) ''\",0),\"\")",
             ]],
+            value_input_option="USER_ENTERED",
+        )
+        analysis.update(
+            "A30:B43",
+            [
+                ["Monthly Totals in Selected Year", ""],
+                ["Month", "Total"],
+                ["Jan", "=IFERROR(SUM(FILTER(Expenses!E2:E, LEFT(Expenses!A2:A,7)=TEXT(DATE(B6,1,1),\"yyyy-mm\"))),0)"],
+                ["Feb", "=IFERROR(SUM(FILTER(Expenses!E2:E, LEFT(Expenses!A2:A,7)=TEXT(DATE(B6,2,1),\"yyyy-mm\"))),0)"],
+                ["Mar", "=IFERROR(SUM(FILTER(Expenses!E2:E, LEFT(Expenses!A2:A,7)=TEXT(DATE(B6,3,1),\"yyyy-mm\"))),0)"],
+                ["Apr", "=IFERROR(SUM(FILTER(Expenses!E2:E, LEFT(Expenses!A2:A,7)=TEXT(DATE(B6,4,1),\"yyyy-mm\"))),0)"],
+                ["May", "=IFERROR(SUM(FILTER(Expenses!E2:E, LEFT(Expenses!A2:A,7)=TEXT(DATE(B6,5,1),\"yyyy-mm\"))),0)"],
+                ["Jun", "=IFERROR(SUM(FILTER(Expenses!E2:E, LEFT(Expenses!A2:A,7)=TEXT(DATE(B6,6,1),\"yyyy-mm\"))),0)"],
+                ["Jul", "=IFERROR(SUM(FILTER(Expenses!E2:E, LEFT(Expenses!A2:A,7)=TEXT(DATE(B6,7,1),\"yyyy-mm\"))),0)"],
+                ["Aug", "=IFERROR(SUM(FILTER(Expenses!E2:E, LEFT(Expenses!A2:A,7)=TEXT(DATE(B6,8,1),\"yyyy-mm\"))),0)"],
+                ["Sep", "=IFERROR(SUM(FILTER(Expenses!E2:E, LEFT(Expenses!A2:A,7)=TEXT(DATE(B6,9,1),\"yyyy-mm\"))),0)"],
+                ["Oct", "=IFERROR(SUM(FILTER(Expenses!E2:E, LEFT(Expenses!A2:A,7)=TEXT(DATE(B6,10,1),\"yyyy-mm\"))),0)"],
+                ["Nov", "=IFERROR(SUM(FILTER(Expenses!E2:E, LEFT(Expenses!A2:A,7)=TEXT(DATE(B6,11,1),\"yyyy-mm\"))),0)"],
+                ["Dec", "=IFERROR(SUM(FILTER(Expenses!E2:E, LEFT(Expenses!A2:A,7)=TEXT(DATE(B6,12,1),\"yyyy-mm\"))),0)"],
+            ],
+            value_input_option="USER_ENTERED",
+        )
+        analysis.update(
+            "A45:E47",
+            [
+                ["Recent 10 Expenses", "", "", "", ""],
+                ["Date", "Time", "Type", "Name", "Price"],
+                ["=IFERROR(QUERY(Expenses!A2:E,\"select A,B,C,D,E order by A desc, B desc limit 10\",0),\"\")", "", "", "", ""],
+            ],
             value_input_option="USER_ENTERED",
         )
 
@@ -434,9 +470,20 @@ class SheetsService:
             ["Monthly Breakdown by Type", ""],
             ["Type", "Total"],
             [
-                "=IFERROR(QUERY(FILTER({Expenses!C2:C,Expenses!E2:E},LEFT(Expenses!A2:A,7)=TEXT(DATE(B6,B5,1),\"yyyy-mm\")),\"select Col1,sum(Col2) group by Col1 label sum(Col2) ''\",0),\"\")",
+                "=IFERROR(QUERY(FILTER({Expenses!C2:C,Expenses!E2:E},LEFT(Expenses!A2:A,7)=TEXT(DATE(B6,B5,1),\"yyyy-mm\")),\"select Col1,sum(Col2) group by Col1 order by sum(Col2) desc limit 10 label sum(Col2) ''\",0),\"\")",
                 "",
             ],
+            ["", ""],
+            ["", ""],
+            ["", ""],
+            ["", ""],
+            ["", ""],
+            ["", ""],
+            ["", ""],
+            ["", ""],
+            ["", ""],
+            ["", ""],
+            ["", ""],
             ["", ""],
             ["Monthly Totals in Selected Year", ""],
             ["Month", "Total"],
@@ -458,14 +505,14 @@ class SheetsService:
             ["=IFERROR(QUERY(Expenses!A2:E,\"select A,B,C,D,E order by A desc, B desc limit 10\",0),\"\")", "", "", "", ""],
         ]
 
-        while len(dashboard_rows) < 40:
+        while len(dashboard_rows) < 60:
             dashboard_rows.append([""])
 
         normalized_rows = []
-        for row in dashboard_rows[:40]:
+        for row in dashboard_rows[:60]:
             normalized_rows.append((row + ["", "", "", "", ""])[:5])
 
-        analysis.update("A1:E40", normalized_rows, value_input_option="USER_ENTERED")
+        analysis.update("A1:E60", normalized_rows, value_input_option="USER_ENTERED")
 
     def _apply_analysis_formatting(self, analysis: gspread.Worksheet) -> None:
         sheet_id = analysis.id
@@ -562,7 +609,7 @@ class SheetsService:
                     "range": {
                         "sheetId": sheet_id,
                         "startRowIndex": 2,
-                        "endRowIndex": 40,
+                        "endRowIndex": 60,
                         "startColumnIndex": 0,
                         "endColumnIndex": 1,
                     },
@@ -601,7 +648,7 @@ class SheetsService:
                     "range": {
                         "sheetId": sheet_id,
                         "startRowIndex": 9,
-                        "endRowIndex": 34,
+                        "endRowIndex": 47,
                         "startColumnIndex": 1,
                         "endColumnIndex": 2,
                     },
@@ -621,8 +668,8 @@ class SheetsService:
                 "repeatCell": {
                     "range": {
                         "sheetId": sheet_id,
-                        "startRowIndex": 35,
-                        "endRowIndex": 36,
+                        "startRowIndex": 45,
+                        "endRowIndex": 46,
                         "startColumnIndex": 0,
                         "endColumnIndex": 5,
                     },
@@ -653,7 +700,7 @@ class SheetsService:
                         "range": {
                             "sheetId": sheet_id,
                             "startRowIndex": 16,
-                            "endRowIndex": 34,
+                            "endRowIndex": 47,
                             "startColumnIndex": 0,
                             "endColumnIndex": 2,
                         },
