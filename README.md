@@ -186,3 +186,66 @@ Included analytics:
 - Monthly breakdown by type
 - Month-by-month totals for selected year
 - Recent 10 expenses table
+
+## 6) Deploy on Oracle Cloud Always Free VM (Polling, no webhook sleep)
+
+This is the recommended free setup if you want the bot running continuously.
+
+### A. Create VM
+
+1. In Oracle Cloud, create a Compute instance (Ubuntu 22.04 or 24.04, Always Free shape).
+2. Save your SSH private key and connect:
+   - `ssh -i <your_key.pem> ubuntu@<VM_PUBLIC_IP>`
+
+### B. Install runtime and clone repo
+
+Run on the VM:
+
+- `sudo apt update && sudo apt upgrade -y`
+- `sudo apt install -y python3 python3-venv python3-pip git`
+- `sudo mkdir -p /opt/tele_expense`
+- `sudo chown -R ubuntu:ubuntu /opt/tele_expense`
+- `git clone https://github.com/jerald-gjw/tele_expense.git /opt/tele_expense`
+- `cd /opt/tele_expense`
+- `python3 -m venv .venv`
+- `source .venv/bin/activate`
+- `pip install -r requirements.txt`
+
+### C. Configure environment
+
+Create `/opt/tele_expense/.env`:
+
+- `BOT_MODE=polling`
+- `TELEGRAM_BOT_TOKEN=<your_bot_token>`
+- `GOOGLE_SHEET_ID=<your_sheet_id>`
+- `GOOGLE_SERVICE_ACCOUNT_JSON=<full_json_single_line_or_multiline_value>`
+- `GOOGLE_WORKSHEET_NAME=Expenses`
+- `TIMEZONE=Asia/Singapore`
+- `LOG_LEVEL=INFO`
+
+Notes:
+- For polling mode, `WEBHOOK_BASE_URL`, `WEBHOOK_PATH`, `WEBHOOK_SECRET_TOKEN` are not required.
+- Keep `.env` private and never commit it.
+
+### D. Run as a systemd service (auto-start on reboot)
+
+1. Copy service file from this repo:
+   - `sudo cp /opt/tele_expense/deploy/oracle/tele-expense.service /etc/systemd/system/tele-expense.service`
+2. If your VM username is not `ubuntu`, edit:
+   - `sudo nano /etc/systemd/system/tele-expense.service`
+   - Change `User=ubuntu` to your actual user.
+3. Enable and start service:
+   - `sudo systemctl daemon-reload`
+   - `sudo systemctl enable tele-expense`
+   - `sudo systemctl start tele-expense`
+4. Check status/logs:
+   - `sudo systemctl status tele-expense`
+   - `sudo journalctl -u tele-expense -f`
+
+### E. Update bot after new commits
+
+- `cd /opt/tele_expense`
+- `git pull`
+- `source .venv/bin/activate`
+- `pip install -r requirements.txt`
+- `sudo systemctl restart tele-expense`
