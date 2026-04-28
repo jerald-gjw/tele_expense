@@ -89,6 +89,7 @@ EOF
 
 chmod 600 .env
 chmod 600 "$GOOGLE_SERVICE_ACCOUNT_JSON_FILE"
+sudo chown "$SERVICE_USER:$SERVICE_USER" .env "$GOOGLE_SERVICE_ACCOUNT_JSON_FILE"
 
 echo -e "${GREEN}✓ .env file created automatically${NC}"
 
