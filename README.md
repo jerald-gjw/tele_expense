@@ -1,6 +1,6 @@
 # Telegram Expense Bot (Google Sheets)
 
-Production-ready Telegram bot that records spending into Google Sheets.
+Production-ready Telegram bot that records spending into Google Sheets, running on Raspberry Pi 4.
 
 ## Features
 
@@ -10,7 +10,7 @@ Production-ready Telegram bot that records spending into Google Sheets.
 - Price validation (`price > 0`)
 - Error handling + logging
 - Environment-based configuration
-- Webhook-based deployment for Render (24/7)
+- Polling-based bot (works great on Raspberry Pi)
 
 ## Project structure
 
@@ -18,8 +18,10 @@ Production-ready Telegram bot that records spending into Google Sheets.
 - `app/validator.py` - input and price validation
 - `app/sheets_service.py` - Google Sheets read/write and totals
 - `app/handlers.py` - Telegram commands and message handler
-- `app/main.py` - webhook runtime
+- `app/main.py` - bot runtime (polling or webhook)
 - `run.py` - process entrypoint
+- `deploy/pi/` - Raspberry Pi systemd service
+- `PI_SETUP.md` - Raspberry Pi setup guide
 
 ## 1) Create Telegram bot (BotFather)
 
@@ -79,25 +81,9 @@ The bot will auto-write this header if missing.
 4. Run:
    - `python run.py`
 
-## 4) Deploy on Render (Webhook, 24/7)
+## 4) Deploy on Raspberry Pi
 
-1. Push this repository to GitHub.
-2. In Render, create **New + > Web Service**.
-3. Connect your GitHub repo.
-4. Build command: `pip install -r requirements.txt`
-5. Start command: `python run.py`
-6. Add environment variables in Render:
-   - `BOT_MODE=webhook`
-   - `TELEGRAM_BOT_TOKEN`
-   - `GOOGLE_SHEET_ID`
-   - `GOOGLE_SERVICE_ACCOUNT_JSON`
-   - `GOOGLE_WORKSHEET_NAME=Expenses`
-   - `TIMEZONE=Asia/Singapore` (or your timezone)
-   - `WEBHOOK_BASE_URL=https://<your-service>.onrender.com`
-   - `WEBHOOK_PATH=/webhook`
-   - `WEBHOOK_SECRET_TOKEN=<long-random-string>` (recommended)
-   - `LOG_LEVEL=INFO`
-7. Deploy. The bot starts webhook server and automatically registers webhook URL.
+See [PI_SETUP.md](PI_SETUP.md) for complete Raspberry Pi 4 setup, configuration, and systemd service installation.
 8. Open Render logs and confirm startup includes webhook mode.
 9. In Telegram test commands:
    - `/start`

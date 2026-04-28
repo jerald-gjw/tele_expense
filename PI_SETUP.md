@@ -1,0 +1,140 @@
+# Raspberry Pi 4 Setup Guide
+
+## Prerequisites
+
+- Raspberry Pi 4 (2GB+ RAM recommended)
+- Raspbian OS (latest)
+- SSH access or terminal
+
+## Installation Steps
+
+### 1. SSH into your Pi
+
+```bash
+ssh pi@raspberrypi.local
+# or: ssh pi@<your_pi_ip>
+```
+
+### 2. Update system
+
+```bash
+sudo apt update && sudo apt upgrade -y
+```
+
+### 3. Install Python and dependencies
+
+```bash
+sudo apt install -y python3 python3-pip python3-venv git
+```
+
+### 4. Clone/setup project directory
+
+```bash
+cd /home/pi
+git clone <your-repo-url>
+cd tele_expense
+```
+
+Or if already cloned:
+```bash
+cd /home/pi/tele_expense
+```
+
+### 5. Create and activate virtual environment
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+```
+
+### 6. Install Python dependencies
+
+```bash
+pip install --upgrade pip
+pip install -r requirements.txt
+```
+
+### 7. Configure environment variables
+
+Create `.env` file with your settings:
+
+```bash
+nano .env
+```
+
+Add these variables:
+```
+BOT_MODE=polling
+TELEGRAM_BOT_TOKEN=your_bot_token_here
+GOOGLE_SHEET_ID=your_sheet_id_here
+GOOGLE_SERVICE_ACCOUNT_JSON=your_service_account_json_here
+GOOGLE_WORKSHEET_NAME=Expenses
+TIMEZONE=Asia/Singapore
+LOG_LEVEL=INFO
+```
+
+Save with `Ctrl+X`, then `Y`, then `Enter`.
+
+### 8. Test the bot locally
+
+```bash
+source .venv/bin/activate
+python run.py
+```
+
+Press `Ctrl+C` to stop when ready.
+
+### 9. Setup as system service (optional but recommended)
+
+Copy the service file:
+```bash
+sudo cp deploy/pi/tele-expense.service /etc/systemd/system/
+```
+
+Enable and start the service:
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable tele-expense
+sudo systemctl start tele-expense
+```
+
+Check status:
+```bash
+sudo systemctl status tele-expense
+```
+
+View logs:
+```bash
+sudo journalctl -u tele-expense -f
+```
+
+## Notes
+
+- **Polling vs Webhook**: The Pi currently uses polling mode (`BOT_MODE=polling`), which is simpler for Pi setups as it doesn't require a public IP or domain.
+- **Auto-restart**: The systemd service will auto-restart the bot if it crashes or Pi reboots.
+- **Performance**: Telegram bot polling is lightweight and works well on Pi 4.
+
+## Troubleshooting
+
+### Bot not starting
+```bash
+sudo systemctl status tele-expense
+sudo journalctl -u tele-expense -n 50
+```
+
+### Permission denied when starting service
+Make sure `.env` file has correct ownership:
+```bash
+sudo chown pi:pi /home/pi/tele_expense/.env
+sudo chmod 600 /home/pi/tele_expense/.env
+```
+
+### Google Sheets connection issues
+Verify `GOOGLE_SERVICE_ACCOUNT_JSON` contains the full JSON content (not a file path).
+
+## Updating code
+```bash
+cd /home/pi/tele_expense
+git pull
+sudo systemctl restart tele-expense
+```

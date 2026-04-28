@@ -49,7 +49,7 @@ def _required_env(name: str) -> str:
 
 
 def load_settings() -> Settings:
-    bot_mode = os.getenv("BOT_MODE", "webhook").strip().lower() or "webhook"
+    bot_mode = os.getenv("BOT_MODE", "polling").strip().lower() or "polling"
     if bot_mode not in {"webhook", "polling"}:
         raise ValueError("BOT_MODE must be either 'webhook' or 'polling'")
 
