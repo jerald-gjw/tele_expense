@@ -10,6 +10,15 @@ NC='\033[0m' # No Color
 
 echo -e "${GREEN}=== Telegram Expense Bot - Raspberry Pi Setup ===${NC}\n"
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_DIR="$SCRIPT_DIR"
+SERVICE_USER="${SUDO_USER:-$USER}"
+SERVICE_HOME="$(getent passwd "$SERVICE_USER" | cut -d: -f6)"
+
+if [ -z "$SERVICE_HOME" ]; then
+    SERVICE_HOME="$HOME"
+fi
+
 # Check if running on Raspberry Pi
 if ! grep -q "Raspberry Pi" /proc/cpuinfo 2>/dev/null; then
     echo -e "${YELLOW}Warning: This may not be a Raspberry Pi${NC}"
@@ -26,19 +35,10 @@ sudo apt install -y python3 python3-pip python3-venv git > /dev/null 2>&1
 echo -e "${GREEN}✓ Dependencies installed${NC}\n"
 
 # Step 3: Setup project directory
-PROJECT_DIR="/home/pi/tele_expense"
-if [ ! -d "$PROJECT_DIR" ]; then
-    echo -e "${YELLOW}[3/7] Cloning project repository...${NC}"
-    cd /home/pi
-    read -p "Enter repository URL (default: skip if already cloned): " REPO_URL
-    if [ -n "$REPO_URL" ]; then
-        git clone "$REPO_URL" tele_expense
-    else
-        echo -e "${RED}Please clone the repository manually to /home/pi/tele_expense${NC}"
-        exit 1
-    fi
-else
-    echo -e "${YELLOW}[3/7] Project directory already exists, skipping clone${NC}"
+echo -e "${YELLOW}[3/7] Using project directory at $PROJECT_DIR${NC}"
+if [ ! -f "$PROJECT_DIR/run.py" ]; then
+    echo -e "${RED}setup-pi.sh must be run from inside the cloned repository${NC}"
+    exit 1
 fi
 cd "$PROJECT_DIR"
 echo -e "${GREEN}✓ Project directory ready at $PROJECT_DIR${NC}\n"
@@ -82,7 +82,23 @@ read -p "Press Enter when .env is configured (or edit with: nano .env): "
 
 # Step 7: Setup systemd service
 echo -e "${YELLOW}[7/7] Setting up systemd service...${NC}"
-sudo cp deploy/pi/tele-expense.service /etc/systemd/system/
+cat <<EOF | sudo tee /etc/systemd/system/tele-expense.service > /dev/null
+[Unit]
+Description=Telegram Expense Bot
+After=network.target
+
+[Service]
+Type=simple
+User=$SERVICE_USER
+WorkingDirectory=$PROJECT_DIR
+EnvironmentFile=$PROJECT_DIR/.env
+ExecStart=$PROJECT_DIR/.venv/bin/python $PROJECT_DIR/run.py
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+EOF
 sudo systemctl daemon-reload
 sudo systemctl enable tele-expense > /dev/null 2>&1
 echo -e "${GREEN}✓ Service installed and enabled${NC}\n"
