@@ -6,7 +6,34 @@
 - Raspbian OS (latest)
 - SSH access or terminal
 
-## Installation Steps
+## Quick Setup (Automated)
+
+Run the automated setup script (recommended):
+
+```bash
+cd /home/pi
+git clone <your-repo-url>
+cd tele_expense
+chmod +x setup-pi.sh
+./setup-pi.sh
+```
+
+The script will:
+- ✓ Update system packages
+- ✓ Install Python, pip, venv, git
+- ✓ Create virtual environment
+- ✓ Install Python dependencies
+- ✓ Create `.env` file (you'll configure it)
+- ✓ Setup systemd service
+- ✓ Test and start the bot
+
+**That's it!** After the script completes, your bot will be running as a service.
+
+---
+
+## Manual Installation Steps
+
+If you prefer manual setup, follow these steps:
 
 ### 1. SSH into your Pi
 

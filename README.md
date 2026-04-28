@@ -83,7 +83,17 @@ The bot will auto-write this header if missing.
 
 ## 4) Deploy on Raspberry Pi
 
-See [PI_SETUP.md](PI_SETUP.md) for complete Raspberry Pi 4 setup, configuration, and systemd service installation.
+**Quick setup:** SSH into your Pi and run:
+
+```bash
+cd /home/pi
+git clone <your-repo-url>
+cd tele_expense
+chmod +x setup-pi.sh
+./setup-pi.sh
+```
+
+For detailed manual steps, see [PI_SETUP.md](PI_SETUP.md).
 8. Open Render logs and confirm startup includes webhook mode.
 9. In Telegram test commands:
    - `/start`
