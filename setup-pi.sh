@@ -67,8 +67,19 @@ GOOGLE_SERVICE_ACCOUNT_JSON_FILE="$PROJECT_DIR/credentials/google-service-accoun
 if [ -n "$GOOGLE_SERVICE_ACCOUNT_JSON_PATH" ] && [ -f "$GOOGLE_SERVICE_ACCOUNT_JSON_PATH" ]; then
     cp "$GOOGLE_SERVICE_ACCOUNT_JSON_PATH" "$GOOGLE_SERVICE_ACCOUNT_JSON_FILE"
 else
+    if [ -n "$GOOGLE_SERVICE_ACCOUNT_JSON_PATH" ]; then
+        echo -e "${RED}File not found: $GOOGLE_SERVICE_ACCOUNT_JSON_PATH${NC}"
+        echo -e "${YELLOW}Copy the JSON file to the Pi first, then rerun setup.${NC}"
+        exit 1
+    fi
+
     echo -e "${YELLOW}Paste the full Google service account JSON on one line, then press Enter:${NC}"
     read -r GOOGLE_SERVICE_ACCOUNT_JSON
+    if [ -z "$GOOGLE_SERVICE_ACCOUNT_JSON" ]; then
+        echo -e "${RED}No JSON was provided.${NC}"
+        echo -e "${YELLOW}Rerun setup and either provide the file path or paste the full JSON.${NC}"
+        exit 1
+    fi
     printf '%s\n' "$GOOGLE_SERVICE_ACCOUNT_JSON" > "$GOOGLE_SERVICE_ACCOUNT_JSON_FILE"
 fi
 
