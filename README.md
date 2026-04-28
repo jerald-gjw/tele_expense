@@ -86,26 +86,16 @@ The bot will auto-write this header if missing.
 **Quick setup:** SSH into your Pi and run:
 
 ```bash
-cd /home/pi
+cd ~
 git clone <your-repo-url>
 cd tele_expense
 chmod +x setup-pi.sh
 ./setup-pi.sh
 ```
 
-For detailed manual steps, see [PI_SETUP.md](PI_SETUP.md).
-8. Open Render logs and confirm startup includes webhook mode.
-9. In Telegram test commands:
-   - `/start`
-   - `/add`
-   - `/details`
-   - `/breakdown weekly`
-   - `/daily_on`
+The script will prompt for your bot token, Google Sheet ID, and service account JSON, then create `.env` for you.
 
-### Local vs cloud mode
-
-- Local machine: `BOT_MODE=polling` in `.env`
-- Render cloud: `BOT_MODE=webhook`
+For detailed steps, see [PI_SETUP.md](PI_SETUP.md).
 
 ## 5) Bot behavior
 

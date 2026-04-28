@@ -11,7 +11,7 @@
 Run the automated setup script (recommended):
 
 ```bash
-cd /home/pi
+cd ~
 git clone <your-repo-url>
 cd tele_expense
 chmod +x setup-pi.sh
@@ -23,7 +23,7 @@ The script will:
 - ✓ Install Python, pip, venv, git
 - ✓ Create virtual environment
 - ✓ Install Python dependencies
-- ✓ Create `.env` file (you'll configure it)
+- ✓ Prompt for credentials and create `.env` automatically
 - ✓ Setup systemd service
 - ✓ Test and start the bot
 
@@ -38,8 +38,8 @@ If you prefer manual setup, follow these steps:
 ### 1. SSH into your Pi
 
 ```bash
-ssh pi@raspberrypi.local
-# or: ssh pi@<your_pi_ip>
+ssh <your_user>@raspberrypi.local
+# or: ssh <your_user>@<your_pi_ip>
 ```
 
 ### 2. Update system
@@ -57,14 +57,14 @@ sudo apt install -y python3 python3-pip python3-venv git
 ### 4. Clone/setup project directory
 
 ```bash
-cd /home/pi
+cd ~
 git clone <your-repo-url>
 cd tele_expense
 ```
 
 Or if already cloned:
 ```bash
-cd /home/pi/tele_expense
+cd ~/tele_expense
 ```
 
 ### 5. Create and activate virtual environment
@@ -83,24 +83,13 @@ pip install -r requirements.txt
 
 ### 7. Configure environment variables
 
-Create `.env` file with your settings:
+The setup script will prompt for:
+- Telegram bot token
+- Google Sheet ID
+- Google service account JSON file path or pasted JSON
+- Worksheet name and timezone
 
-```bash
-nano .env
-```
-
-Add these variables:
-```
-BOT_MODE=polling
-TELEGRAM_BOT_TOKEN=your_bot_token_here
-GOOGLE_SHEET_ID=your_sheet_id_here
-GOOGLE_SERVICE_ACCOUNT_JSON=your_service_account_json_here
-GOOGLE_WORKSHEET_NAME=Expenses
-TIMEZONE=Asia/Singapore
-LOG_LEVEL=INFO
-```
-
-Save with `Ctrl+X`, then `Y`, then `Enter`.
+It will then create `.env` automatically.
 
 ### 8. Test the bot locally
 
@@ -152,8 +141,8 @@ sudo journalctl -u tele-expense -n 50
 ### Permission denied when starting service
 Make sure `.env` file has correct ownership:
 ```bash
-sudo chown pi:pi /home/pi/tele_expense/.env
-sudo chmod 600 /home/pi/tele_expense/.env
+sudo chown $USER:$USER ~/tele_expense/.env
+sudo chmod 600 ~/tele_expense/.env
 ```
 
 ### Google Sheets connection issues
@@ -161,7 +150,7 @@ Verify `GOOGLE_SERVICE_ACCOUNT_JSON` contains the full JSON content (not a file 
 
 ## Updating code
 ```bash
-cd /home/pi/tele_expense
+cd ~/tele_expense
 git pull
 sudo systemctl restart tele-expense
 ```

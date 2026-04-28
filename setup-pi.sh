@@ -13,11 +13,6 @@ echo -e "${GREEN}=== Telegram Expense Bot - Raspberry Pi Setup ===${NC}\n"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$SCRIPT_DIR"
 SERVICE_USER="${SUDO_USER:-$USER}"
-SERVICE_HOME="$(getent passwd "$SERVICE_USER" | cut -d: -f6)"
-
-if [ -z "$SERVICE_HOME" ]; then
-    SERVICE_HOME="$HOME"
-fi
 
 # Check if running on Raspberry Pi
 if ! grep -q "Raspberry Pi" /proc/cpuinfo 2>/dev/null; then
@@ -62,23 +57,42 @@ if [ -f ".env" ]; then
     cp .env .env.backup
 fi
 
+read -r -p "Telegram bot token: " TELEGRAM_BOT_TOKEN
+read -r -p "Google Sheet ID: " GOOGLE_SHEET_ID
+read -r -p "Google service account JSON file path (recommended): " GOOGLE_SERVICE_ACCOUNT_JSON_PATH
+
+if [ -n "$GOOGLE_SERVICE_ACCOUNT_JSON_PATH" ] && [ -f "$GOOGLE_SERVICE_ACCOUNT_JSON_PATH" ]; then
+    GOOGLE_SERVICE_ACCOUNT_JSON="$(python3 - <<PY
+import json
+from pathlib import Path
+
+path = Path(r'''$GOOGLE_SERVICE_ACCOUNT_JSON_PATH''')
+print(json.dumps(json.loads(path.read_text()), separators=(',', ':')))
+PY
+)"
+else
+    echo -e "${YELLOW}Paste the full Google service account JSON, then press Enter:${NC}"
+    read -r GOOGLE_SERVICE_ACCOUNT_JSON
+fi
+
+read -r -p "Google worksheet name [Expenses]: " GOOGLE_WORKSHEET_NAME
+GOOGLE_WORKSHEET_NAME="${GOOGLE_WORKSHEET_NAME:-Expenses}"
+read -r -p "Timezone [Asia/Singapore]: " TIMEZONE
+TIMEZONE="${TIMEZONE:-Asia/Singapore}"
+
 cat > .env << EOF
 BOT_MODE=polling
-TELEGRAM_BOT_TOKEN=
-GOOGLE_SHEET_ID=
-GOOGLE_SERVICE_ACCOUNT_JSON=
-GOOGLE_WORKSHEET_NAME=Expenses
-TIMEZONE=Asia/Singapore
+TELEGRAM_BOT_TOKEN=$TELEGRAM_BOT_TOKEN
+GOOGLE_SHEET_ID=$GOOGLE_SHEET_ID
+GOOGLE_SERVICE_ACCOUNT_JSON=$GOOGLE_SERVICE_ACCOUNT_JSON
+GOOGLE_WORKSHEET_NAME=$GOOGLE_WORKSHEET_NAME
+TIMEZONE=$TIMEZONE
 LOG_LEVEL=INFO
 EOF
 
-echo -e "${GREEN}✓ .env file created${NC}"
-echo -e "${YELLOW}Please edit .env with your configuration:${NC}"
-echo "  - TELEGRAM_BOT_TOKEN: Get from BotFather on Telegram"
-echo "  - GOOGLE_SHEET_ID: From your Google Sheet URL"
-echo "  - GOOGLE_SERVICE_ACCOUNT_JSON: Full JSON from Google Cloud service account"
-echo ""
-read -p "Press Enter when .env is configured (or edit with: nano .env): " 
+chmod 600 .env
+
+echo -e "${GREEN}✓ .env file created automatically${NC}"
 
 # Step 7: Setup systemd service
 echo -e "${YELLOW}[7/7] Setting up systemd service...${NC}"
