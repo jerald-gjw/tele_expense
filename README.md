@@ -20,7 +20,7 @@ Production-ready Telegram bot that records spending into Google Sheets, running 
 - `app/handlers.py` - Telegram commands and message handler
 - `app/main.py` - bot runtime (polling or webhook)
 - `run.py` - process entrypoint
-- `deploy/pi/` - Raspberry Pi systemd service
+- `credentials/` - generated Google service account file on Raspberry Pi
 - `PI_SETUP.md` - Raspberry Pi setup guide
 
 ## 1) Create Telegram bot (BotFather)
@@ -57,7 +57,7 @@ Optional:
 6. Open your Google Sheet, copy its ID from URL:
    - `https://docs.google.com/spreadsheets/d/<SHEET_ID>/edit`
 7. Share the sheet with the service account email (`client_email` in JSON) as **Editor**.
-8. Put full JSON content into `GOOGLE_SERVICE_ACCOUNT_JSON`.
+8. Place the service account JSON in a file and set `GOOGLE_SERVICE_ACCOUNT_JSON_FILE` to its path, or let the Pi setup script create it for you.
 9. Set `GOOGLE_SHEET_ID`.
 
 ### Example Google Sheet format
@@ -93,7 +93,7 @@ chmod +x setup-pi.sh
 ./setup-pi.sh
 ```
 
-The script will prompt for your bot token, Google Sheet ID, and service account JSON, then create `.env` for you.
+The script will prompt for your bot token, Google Sheet ID, and service account file or JSON, then create `.env` plus a credentials JSON file for you.
 
 For detailed steps, see [PI_SETUP.md](PI_SETUP.md).
 

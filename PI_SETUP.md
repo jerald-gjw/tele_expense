@@ -23,7 +23,7 @@ The script will:
 - ✓ Install Python, pip, venv, git
 - ✓ Create virtual environment
 - ✓ Install Python dependencies
-- ✓ Prompt for credentials and create `.env` automatically
+- ✓ Prompt for credentials and create `.env` plus a credentials JSON file automatically
 - ✓ Setup systemd service
 - ✓ Test and start the bot
 
@@ -86,10 +86,10 @@ pip install -r requirements.txt
 The setup script will prompt for:
 - Telegram bot token
 - Google Sheet ID
-- Google service account JSON file path or pasted JSON
+- Google service account JSON file path, or pasted one-line JSON if you do not have a file yet
 - Worksheet name and timezone
 
-It will then create `.env` automatically.
+It will then create `.env` and `credentials/google-service-account.json` automatically.
 
 ### 8. Test the bot locally
 
@@ -102,9 +102,28 @@ Press `Ctrl+C` to stop when ready.
 
 ### 9. Setup as system service (optional but recommended)
 
-Copy the service file:
+The setup script already creates and installs the service automatically.
+
+If you want to do it manually, create the service file with:
+
 ```bash
-sudo cp deploy/pi/tele-expense.service /etc/systemd/system/
+sudo tee /etc/systemd/system/tele-expense.service > /dev/null <<'EOF'
+[Unit]
+Description=Telegram Expense Bot
+After=network.target
+
+[Service]
+Type=simple
+User=<your_user>
+WorkingDirectory=/home/<your_user>/tele_expense
+EnvironmentFile=/home/<your_user>/tele_expense/.env
+ExecStart=/home/<your_user>/tele_expense/.venv/bin/python /home/<your_user>/tele_expense/run.py
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+EOF
 ```
 
 Enable and start the service:
@@ -146,7 +165,7 @@ sudo chmod 600 ~/tele_expense/.env
 ```
 
 ### Google Sheets connection issues
-Verify `GOOGLE_SERVICE_ACCOUNT_JSON` contains the full JSON content (not a file path).
+Verify `credentials/google-service-account.json` exists and `GOOGLE_SERVICE_ACCOUNT_JSON_FILE` points to it.
 
 ## Updating code
 ```bash

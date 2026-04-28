@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import os
 from dataclasses import dataclass
+from pathlib import Path
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from dotenv import load_dotenv
@@ -16,7 +17,8 @@ class Settings:
     bot_mode: str
     telegram_bot_token: str
     google_sheet_id: str
-    google_service_account_json: str
+    google_service_account_json: str | None
+    google_service_account_json_file: str | None
     worksheet_name: str
     timezone: str
     port: int
@@ -38,7 +40,11 @@ class Settings:
 
     @property
     def parsed_service_account_info(self) -> dict:
-        return json.loads(self.google_service_account_json)
+        if self.google_service_account_json_file:
+            return json.loads(Path(self.google_service_account_json_file).read_text())
+        if self.google_service_account_json:
+            return json.loads(self.google_service_account_json)
+        raise ValueError("Missing Google service account credentials")
 
 
 def _required_env(name: str) -> str:
@@ -61,11 +67,19 @@ def load_settings() -> Settings:
     if not webhook_path.startswith("/"):
         webhook_path = f"/{webhook_path}"
 
+    google_service_account_json = os.getenv("GOOGLE_SERVICE_ACCOUNT_JSON", "").strip()
+    google_service_account_json_file = os.getenv("GOOGLE_SERVICE_ACCOUNT_JSON_FILE", "").strip()
+    if not google_service_account_json and not google_service_account_json_file:
+        raise ValueError(
+            "Missing Google service account credentials: set GOOGLE_SERVICE_ACCOUNT_JSON or GOOGLE_SERVICE_ACCOUNT_JSON_FILE"
+        )
+
     return Settings(
         bot_mode=bot_mode,
         telegram_bot_token=_required_env("TELEGRAM_BOT_TOKEN"),
         google_sheet_id=_required_env("GOOGLE_SHEET_ID"),
-        google_service_account_json=_required_env("GOOGLE_SERVICE_ACCOUNT_JSON"),
+        google_service_account_json=google_service_account_json or None,
+        google_service_account_json_file=google_service_account_json_file or None,
         worksheet_name=os.getenv("GOOGLE_WORKSHEET_NAME", "Expenses"),
         timezone=os.getenv("TIMEZONE", "UTC"),
         port=int(os.getenv("PORT", "10000")),

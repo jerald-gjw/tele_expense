@@ -59,20 +59,17 @@ fi
 
 read -r -p "Telegram bot token: " TELEGRAM_BOT_TOKEN
 read -r -p "Google Sheet ID: " GOOGLE_SHEET_ID
-read -r -p "Google service account JSON file path (recommended): " GOOGLE_SERVICE_ACCOUNT_JSON_PATH
+read -r -p "Google service account JSON file path (recommended, blank to paste one-line JSON): " GOOGLE_SERVICE_ACCOUNT_JSON_PATH
+
+mkdir -p credentials
+GOOGLE_SERVICE_ACCOUNT_JSON_FILE="$PROJECT_DIR/credentials/google-service-account.json"
 
 if [ -n "$GOOGLE_SERVICE_ACCOUNT_JSON_PATH" ] && [ -f "$GOOGLE_SERVICE_ACCOUNT_JSON_PATH" ]; then
-    GOOGLE_SERVICE_ACCOUNT_JSON="$(python3 - <<PY
-import json
-from pathlib import Path
-
-path = Path(r'''$GOOGLE_SERVICE_ACCOUNT_JSON_PATH''')
-print(json.dumps(json.loads(path.read_text()), separators=(',', ':')))
-PY
-)"
+    cp "$GOOGLE_SERVICE_ACCOUNT_JSON_PATH" "$GOOGLE_SERVICE_ACCOUNT_JSON_FILE"
 else
-    echo -e "${YELLOW}Paste the full Google service account JSON, then press Enter:${NC}"
+    echo -e "${YELLOW}Paste the full Google service account JSON on one line, then press Enter:${NC}"
     read -r GOOGLE_SERVICE_ACCOUNT_JSON
+    printf '%s\n' "$GOOGLE_SERVICE_ACCOUNT_JSON" > "$GOOGLE_SERVICE_ACCOUNT_JSON_FILE"
 fi
 
 read -r -p "Google worksheet name [Expenses]: " GOOGLE_WORKSHEET_NAME
@@ -84,13 +81,14 @@ cat > .env << EOF
 BOT_MODE=polling
 TELEGRAM_BOT_TOKEN=$TELEGRAM_BOT_TOKEN
 GOOGLE_SHEET_ID=$GOOGLE_SHEET_ID
-GOOGLE_SERVICE_ACCOUNT_JSON=$GOOGLE_SERVICE_ACCOUNT_JSON
+GOOGLE_SERVICE_ACCOUNT_JSON_FILE=$GOOGLE_SERVICE_ACCOUNT_JSON_FILE
 GOOGLE_WORKSHEET_NAME=$GOOGLE_WORKSHEET_NAME
 TIMEZONE=$TIMEZONE
 LOG_LEVEL=INFO
 EOF
 
 chmod 600 .env
+chmod 600 "$GOOGLE_SERVICE_ACCOUNT_JSON_FILE"
 
 echo -e "${GREEN}✓ .env file created automatically${NC}"
 
